@@ -1,0 +1,76 @@
+{
+ "application": "spinnaker",
+ "id": "8764e5f0-8c52-4113-8de1-6b0708fb11ec",
+ "index": 0,
+ "keepWaitingPipelines": false,
+ "lastModifiedBy": "anonymous",
+ "limitConcurrent": true,
+ "name": "deploy",
+ "schema": "1",
+ "spelEvaluator": "v4",
+ "stages": [
+  {
+   "expectedArtifacts": [
+    {
+     "defaultArtifact": {
+      "customKind": true,
+      "id": "0edce4ea-0a9a-43b7-8536-0270636da8c4"
+     },
+     "displayName": "baked-k8s-yaml",
+     "id": "811ba04a-6f41-431f-9f8c-5cc6fa610b28",
+     "matchArtifact": {
+      "artifactAccount": "embedded-artifact",
+      "customKind": false,
+      "id": "c255b553-4ada-4637-8da0-9adddefdcf6f",
+      "type": "embedded/base64"
+     },
+     "useDefaultArtifact": false,
+     "usePriorArtifact": false
+    }
+   ],
+   "inputArtifact": {
+    "account": "git",
+    "artifact": {
+     "artifactAccount": "git",
+     "customKind": true,
+     "id": "2f26029c-7a5b-43a1-bb74-f3688730c45b",
+     "reference": "https://github.com/spinnaker/spinnaker-kustomize.git",
+     "type": "git/repo",
+     "version": "main"
+    }
+   },
+   "kustomizeFilePath": "kustomization.yml",
+   "name": "Bake (Manifest)",
+   "overrides": {},
+   "refId": "1",
+   "requisiteStageRefIds": [],
+   "templateRenderer": "KUSTOMIZE4",
+   "type": "bakeManifest"
+  },
+  {
+   "account": "managing",
+   "cloudProvider": "kubernetes",
+   "manifestArtifactId": "811ba04a-6f41-431f-9f8c-5cc6fa610b28",
+   "moniker": {
+    "app": "spinnaker"
+   },
+   "name": "Deploy (Manifest)",
+   "refId": "2",
+   "requisiteStageRefIds": [
+    "1"
+   ],
+   "skipExpressionEvaluation": false,
+   "source": "artifact",
+   "trafficManagement": {
+    "enabled": false,
+    "options": {
+     "enableTraffic": false,
+     "services": []
+    }
+   },
+   "type": "deployManifest"
+  }
+ ],
+ "triggers": [],
+ "updateTs": "1685348481501"
+}

@@ -1,0 +1,11 @@
+{
+  "cloudProviders": "kubernetes",
+  "createTs": "1685346925939",
+  "email": "me@example.com",
+  "instancePort": 80,
+  "lastModifiedBy": "anonymous",
+  "name": "spinnaker",
+  "trafficGuards": [],
+  "updateTs": "1685346925939",
+  "user": "[anonymous]"
+}

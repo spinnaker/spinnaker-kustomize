@@ -47,7 +47,99 @@ make apply
 # kubectl apply -f ./spinnaker.yaml
 ```
 
-Pods will crash loop until MariaDB and Redis are available.
+Pods will crash loop until MariaDB and Redis are available. Check `Running`:
+
+```
+watch kubectl get pods --namespace spinnaker
+```
+
+Access Spinnaker when all pods have `Running` status:
+
+```
+make expose
+
+# kubectl port-forward ...
+```
+
+- Deck UI on [http://localhost:9000](http://localhost:9000)
+- Gate API on [http://localhost:8084](http://localhost:8084)
+
+## Deploy Spinnaker with Spinnaker
+
+We're almost ready to deploy Spinnaker with Spinnaker.
+
+First fork this repository if you want the changes to persist after we deploy.
+
+### Add git repository artifact support
+
+Add the below yaml to [overlays/config/files/echo-local.yml](./overlays/config/files/echo-local.yml)
+and [overlays/config/files/clouddriver-local.yml](./overlays/config/files/clouddriver-local.yml):
+
+```
+artifacts:
+  gitrepo:
+    enabled: true
+    accounts:
+    - name: git
+      sshTrustUnknownHosts: true
+```
+
+All git artifact repository configuration available [here](https://github.com/spinnaker/clouddriver/blob/e8649bb4681a4852066ed44f77e9d4a1205314a6/clouddriver-artifacts/src/main/java/com/netflix/spinnaker/clouddriver/artifacts/gitRepo/GitRepoArtifactAccount.java#L32).
+
+Commit and push these changes to your fork.
+
+Then deploy Spinnaker manually again to enable git support:
+
+```
+make apply
+
+# kubectl apply -f ./spinnaker.yaml
+```
+
+Wait for all pods to reach `Running` status and then recreate network access to
+the pods:
+
+```
+make expose
+```
+
+### Create Spinnaker Application and Pipeline
+
+Install `spin` CLI per [instructions](https://spinnaker.io/docs/setup/other_config/spin/).
+The default configuration will work, no custom settings required.
+
+Create the `spinnaker` Application:
+
+```
+spin application save --application-name spinnaker --file ./application.json
+```
+
+Edit the pipeine template file [pipeline.json](./pipeline.json) to point to
+your fork and branch. For example:
+
+```
+$ grep -A2  spinnaker-kustomize.git pipeline.json
+          "reference": "https://github.com/karlskewes/spinnaker-kustomize.git",
+          "type": "git/repo",
+          "version": "gitrepo-artifact"
+```
+
+Create the `deploy` Pipeline:
+
+```
+spin pipeline save --file pipeline.json
+```
+
+### Run the deploy pipeline
+
+Open the Spinnaker UI at [http://localhost:9000/#/applications/spinnaker/executions](http://localhost:9000/#/applications/spinnaker/executions)
+and click `Start Manual Execution`.
+
+You will lose network acces when the pods deploy. Recreate with:
+
+```
+make expose
+```
 
 ## Customizing Spinnaker
 
@@ -125,7 +217,7 @@ append lines to a Kubernetes `ConfigMap` item, for example:
 
 ```
   data:
-    clouddriver-example.yml | # << Kustomize can append items at this level
+    # << Kustomize can append items at this level
     clouddriver-local.yml: |
       # Some existing configuration
 
